@@ -8,108 +8,92 @@
  * @format
  */
 
- import React from 'react';
- import {
-   SafeAreaView,
-   ScrollView,
-   StatusBar,
-   StyleSheet,
-   Text,
-   useColorScheme,
-   View,
- } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Button,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from 'react-native';
 
- import {
-   Colors,
-   DebugInstructions,
-   Header,
-   LearnMoreLinks,
-   ReloadInstructions,
- } from 'react-native/Libraries/NewAppScreen';
+import { ToDoItem } from './components/ToDoItem';
 
- const Section: React.FC<{
-   title: string;
- }> = ({children, title}) => {
-   const isDarkMode = useColorScheme() === 'dark';
-   return (
-     <View style={styles.sectionContainer}>
-       <Text
-         style={[
-           styles.sectionTitle,
-           {
-             color: isDarkMode ? Colors.white : Colors.black,
-           },
-         ]}>
-         {title}
-       </Text>
-       <Text
-         style={[
-           styles.sectionDescription,
-           {
-             color: isDarkMode ? Colors.light : Colors.dark,
-           },
-         ]}>
-         {children}
-       </Text>
-     </View>
-   );
- };
+const App = () => {
+  const isDarkMode = useColorScheme() === 'dark';
 
- const App = () => {
-   const isDarkMode = useColorScheme() === 'dark';
+  const initTodos = ['go to shop', 'eat at least a one healthy foods', 'Do some exercises'];
+  const [todos, setTodos] = useState(initTodos);
+  const [newTodo, setNewTodo] = useState('');
 
-   const backgroundStyle = {
-     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-   };
+  const addTodo = () => {
+    if (!newTodo.trim()) return;
+    setTodos([...todos, newTodo]);
+    setNewTodo('');
+  };
 
-   return (
-     <SafeAreaView style={backgroundStyle}>
-       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-       <ScrollView
-         contentInsetAdjustmentBehavior="automatic"
-         style={backgroundStyle}>
-         <Header />
-         <View
-           style={{
-             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-           }}>
-           <Section title="Step One">
-             Edit <Text style={styles.highlight}>App.js</Text> to change this
-             screen and then come back to see your edits.
-           </Section>
-           <Section title="See Your Changes">
-             <ReloadInstructions />
-           </Section>
-           <Section title="Debug">
-             <DebugInstructions />
-           </Section>
-           <Section title="Learn More">
-             Read the docs to discover what to do next:
-           </Section>
-           <LearnMoreLinks />
-         </View>
-       </ScrollView>
-     </SafeAreaView>
-   );
- };
+  const deleteItem = (todo: string) => {
+    setTodos([...todos.filter(i => i !== todo)]);
+  };
 
- const styles = StyleSheet.create({
-   sectionContainer: {
-     marginTop: 32,
-     paddingHorizontal: 24,
-   },
-   sectionTitle: {
-     fontSize: 24,
-     fontWeight: '600',
-   },
-   sectionDescription: {
-     marginTop: 8,
-     fontSize: 18,
-     fontWeight: '400',
-   },
-   highlight: {
-     fontWeight: '700',
-   },
- });
+  return (
+    <SafeAreaView>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic">
+        <View style={[styles.appTitleView]}>
+          <Text style={styles.appTitleText}> ToDo Application </Text>
+        </View>
 
- export default App;
+        <View>
+          {todos.map(todo => (
+            <ToDoItem key={todo} todo={todo} deleteItem={deleteItem} />
+          ))}
+        </View>
+        <View style={styles.textInputContainer}>
+          <TextInput style={styles.textInput} value={newTodo} onChangeText={text => setNewTodo(text)} />
+          <Button
+            onPress={addTodo}
+            title="Add ToDo"
+            color="#841584"
+            accessibilityLabel="add todo item"
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  appTitleView: {
+    marginTop: 20,
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  appTitleText: {
+    fontSize: 24,
+    fontWeight: '800'
+  },
+  textInputContainer: {
+    marginTop: 30,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 10,
+    borderColor: 'black',
+    borderWidth: 1,
+    justifyContent: 'flex-end'
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 5,
+    height: 30,
+    margin: 10,
+    backgroundColor: 'pink'
+  },
+});
+
+export default App;
