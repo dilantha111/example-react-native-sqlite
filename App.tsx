@@ -8,7 +8,7 @@
  * @format
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   SafeAreaView,
@@ -21,23 +21,64 @@ import {
   View,
 } from 'react-native';
 
-import { ToDoItem } from './components/ToDoItem';
+import { ToDoItemComponent } from './components/ToDoItem';
+import { ToDoItem } from './models';
+import { getDBConnection, getTodoItems, saveTodoItems, createTable, deleteTodoItem } from './services/db-service';
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const initTodos = ['go to shop', 'eat at least a one healthy foods', 'Do some exercises'];
-  const [todos, setTodos] = useState(initTodos);
+  const [todos, setTodos] = useState<ToDoItem[]>([]);
   const [newTodo, setNewTodo] = useState('');
 
-  const addTodo = () => {
+  const loadDataCallback = useCallback(async () => {
+    try {
+      const initTodos = [{ id: 0, value: 'go to shop' }, { id: 1, value: 'eat at least a one healthy foods' }, { id: 2, value: 'Do some exercises' }];
+      const db = await getDBConnection();
+      await createTable(db);
+      const storedTodoItems = await getTodoItems(db);
+      if (storedTodoItems.length) {
+        setTodos(storedTodoItems);
+      } else {
+        await saveTodoItems(db, initTodos);
+        setTodos(initTodos);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDataCallback();
+  }, [loadDataCallback]);
+
+  const addTodo = async () => {
     if (!newTodo.trim()) return;
-    setTodos([...todos, newTodo]);
-    setNewTodo('');
+    try {
+      const newTodos = [...todos, {
+        id: todos.length ? todos.reduce((acc, cur) => {
+          if (cur.id > acc.id) return cur;
+          return acc;
+        }).id + 1 : 0, value: newTodo
+      }];
+      setTodos(newTodos);
+      const db = await getDBConnection();
+      await saveTodoItems(db, newTodos);
+      setNewTodo('');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const deleteItem = (todo: string) => {
-    setTodos([...todos.filter(i => i !== todo)]);
+  const deleteItem = async (id: number) => {
+    try {
+      const db = await getDBConnection();
+      await deleteTodoItem(db, id);
+      todos.splice(id, 1);
+      setTodos(todos.slice(0));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -50,8 +91,8 @@ const App = () => {
         </View>
 
         <View>
-          {todos.map(todo => (
-            <ToDoItem key={todo} todo={todo} deleteItem={deleteItem} />
+          {todos.map((todo) => (
+            <ToDoItemComponent key={todo.id} todo={todo} deleteItem={deleteItem} />
           ))}
         </View>
         <View style={styles.textInputContainer}>

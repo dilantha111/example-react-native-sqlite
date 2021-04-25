@@ -5,21 +5,22 @@ import {
   Text,
   View,
 } from 'react-native';
+import { ToDoItem } from '../models';
 
-export const ToDoItem: React.FC<{
-  todo: string;
+export const ToDoItemComponent: React.FC<{
+  todo: ToDoItem;
   deleteItem: Function;
-}> = ({ todo, deleteItem }) => {
+}> = ({ todo: {id, value}, deleteItem }) => {
   return (
     <View style={styles.todoContainer}>
       <View style={styles.todoTextContainer}>
         <Text
           style={styles.sectionTitle}>
-          {todo}
+          {value}
         </Text>
       </View>
       <Button
-        onPress={() => deleteItem(todo)}
+        onPress={() => deleteItem(id)}
         title="done"
         color="#841584"
         accessibilityLabel="add todo item"
